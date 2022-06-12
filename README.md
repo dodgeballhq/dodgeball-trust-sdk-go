@@ -44,7 +44,7 @@ Then, reference dodgeball-trust-sdk-go in a Go program with `import`:
 
 ```go
 import (
-  "github.com/dodgeballhq/dodgeball-trust-sdk-go/v71"
+  "github.com/dodgeballhq/dodgeball-trust-sdk-go/v1"
 )
 ```
 
@@ -59,7 +59,7 @@ import (
   "log"
   "net/http"
   "os"
-  "github.com/dodgeballhq/dodgeball-trust-sdk-go/v72"
+  "github.com/dodgeballhq/dodgeball-trust-sdk-go/v1"
 )
 
 // Initialize the SDK with your secret API key
