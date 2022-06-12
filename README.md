@@ -1,7 +1,7 @@
 # Dodgeball Server Trust SDK for Go
 
 [![GoDoc reference example](https://img.shields.io/badge/godoc-reference-blue.svg)](https://pkg.go.dev/github.com/dodgeballhq/dodgeball-trust-sdk-go)
-[![GoReportCard example](https://goreportcard.com/badge/github.com/nanomsg/mangos)](https://goreportcard.com/report/github.com/nanomsg/mangos)
+[![GoReportCard example](https://goreportcard.com/badge/github.com/nanomsg/mangos)](https://goreportcard.com/report/github.com/dodgeballhq/dodgeball-trust-sdk-go)
 
 ## Table of Contents
 
