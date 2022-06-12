@@ -44,7 +44,7 @@ Then, reference dodgeball-trust-sdk-go in a Go program with `import`:
 
 ```go
 import (
-  "github.com/dodgeballhq/dodgeball-trust-sdk-go/v72"
+  "github.com/dodgeballhq/dodgeball-trust-sdk-go/v71"
 )
 ```
 
