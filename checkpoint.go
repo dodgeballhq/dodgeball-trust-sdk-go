@@ -89,7 +89,7 @@ func (cr *CheckpointResponse) IsUndecided() bool {
 
 // HasError checks to see if the verification has encountered an error
 func (cr *CheckpointResponse) HasError() bool {
-	if !cr.Success && len(cr.Errors) > 0 {
+	if !cr.Success || len(cr.Errors) > 0 {
 		return true
 	}
 	return false

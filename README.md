@@ -54,19 +54,19 @@ import (
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"log"
-	"net"
-	"net/http"
-	"os"
-	"strings"
+  "encoding/json"
+  "fmt"
+  "log"
+  "net"
+  "net/http"
+  "os"
+  "strings"
 
-	"github.com/dodgeballhq/dodgeball-trust-sdk-go"
+  "github.com/dodgeballhq/dodgeball-trust-sdk-go"
 )
 
 // Initialize the SDK with your secret API key
-var dodgeballClient = dodgeball.NewDodgeball(os.Getenv("DODGEBALL_SECRET_KEY"), dodgeball.NewConfig())
+var dodgeballClient = dodgeball.New(os.Getenv("DODGEBALL_SECRET_KEY"), dodgeball.NewConfig())
 
 func orders(w http.ResponseWriter, req *http.Request) {
   userIP, err := getIP(req)
@@ -74,9 +74,9 @@ func orders(w http.ResponseWriter, req *http.Request) {
     fmt.Fprintf(w, "error reading IP\n")
       return
   }
-  checkpointRequest := &dodgeball.CheckpointRequest{
+  checkpointRequest := dodgeball.CheckpointRequest{
     CheckpointName: "PLACE_ORDER",
-    Event: &dodgeball.CheckpointEvent{
+    Event: dodgeball.CheckpointEvent{
       IP: userIP,
       Data: map[string]interface{}{
         "order": "order456",
@@ -87,7 +87,11 @@ func orders(w http.ResponseWriter, req *http.Request) {
     UseVerificationID: req.Header.Get("x-dodgeball-verification-id"),
   }
   // In moments of risk, call a checkpoint within Dodgeball to verify the request is allowed to proceed
-  checkpointResponse := dodgeballClient.Checkpoint(checkpointRequest)
+  checkpointResponse, err := dodgeballClient.Checkpoint(*checkpointRequest)
+  if err != nil {
+    fmt.Fprintf(w, "error checking checkpoint\n")
+    return
+  }
 
   w.Header().Set("Content-Type", "application/json")
   resp := make(map[string]interface{})
@@ -147,7 +151,7 @@ func getIP(r *http.Request) (string, error) {
   if netIP != nil {
     return ip, nil
   }
-  return "", fmt.Errorf("No valid ip found")
+  return "", fmt.Errorf("no valid IP found")
 }
 
 ```
@@ -188,7 +192,7 @@ Checkpoints represent key moments of risk in an application and at the core of h
 ```go
 checkpointRequest := &dodgeball.CheckpointRequest{
   CheckpointName: "CHECKPOINT_NAME",
-  Event: &dodgeball.CheckpointEvent{
+  Event: dodgeball.CheckpointEvent{
     IP: "127.0.0.1", // The IP address of the device where the request originated
     Data: map[string]interface{}{
       // Arbitrary data to send in to the checkpoint...
@@ -201,7 +205,7 @@ checkpointRequest := &dodgeball.CheckpointRequest{
   UseVerificationID: req.Header.Get("x-dodgeball-verification-id"), // Optional, if you have a verification ID, you can pass it in here
 }
 
-checkpointResponse := dodgeballClient.Checkpoint(checkpointRequest)
+checkpointResponse, err := dodgeballClient.Checkpoint(checkpointRequest)
 ```
 
 | Parameter           | Required | Description                                                                                                                                                                 |
