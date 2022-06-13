@@ -165,7 +165,7 @@ func getIP(r *http.Request) (string, error) {
 The package requires a secret API key as the first argument to the constructor.
 
 ```go
-var dodgeballClient = dodgeball.NewDodgeball(os.Getenv("DODGEBALL_SECRET_KEY"), dodgeball.NewConfig())
+var dodgeballClient = dodgeball.New(os.Getenv("DODGEBALL_SECRET_KEY"), dodgeball.NewConfig())
 ```
 
 Optionally, you can pass in several configuration options to the constructor:
@@ -175,7 +175,7 @@ var dodgeballConfig = dodgeball.NewConfig()
 dodgeballConfig.APIURL = "https://api.dodgeball.com"
 dodgeballConfig.APIVersion = "v1"
 
-var dodgeballClient = dodgeball.NewDodgeball(os.Getenv("DODGEBALL_SECRET_KEY"), dodgeballConfig)
+var dodgeballClient = dodgeball.New(os.Getenv("DODGEBALL_SECRET_KEY"), dodgeballConfig)
 ```
 
 | Option       | Default                       | Description                                                                                                                             |
