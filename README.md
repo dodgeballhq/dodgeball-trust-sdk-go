@@ -388,23 +388,27 @@ There are several utility methods available to help interpret the checkpoint res
 
 #### `checkpointResponse.IsAllowed()`
 
-The `isAllowed` method takes in a checkpoint response and returns `true` if the request is allowed to proceed.
+The `IsAllowed` method takes in a checkpoint response and returns `true` if the request is allowed to proceed.
 
 #### `checkpointResponse.IsDenied()`
 
-The `isDenied` method takes in a checkpoint response and returns `true` if the request is denied and should not be allowed to proceed.
+The `IsDenied` method takes in a checkpoint response and returns `true` if the request is denied and should not be allowed to proceed.
 
 #### `checkpointResponse.IsRunning()`
 
-The `isRunning` method takes in a checkpoint response and returns `true` if no determination has been reached on how to proceed. The verification should be returned to the frontend application to gather additional input from the user. See the [useVerification](#useverification) section for more details on use and an end-to-end example.
+The `IsRunning` method takes in a checkpoint response and returns `true` if no determination has been reached on how to proceed. The verification should be returned to the frontend application to gather additional input from the user. See the [useVerification](#useverification) section for more details on use and an end-to-end example.
 
 #### `checkpointResponse.IsUndecided()`
 
-The `isUndecided` method takes in a checkpoint response and returns `true` if the verification has finished and no determination has been reached on how to proceed. See [undecided](#undecided) for more details.
+The `IsUndecided` method takes in a checkpoint response and returns `true` if the verification has finished and no determination has been reached on how to proceed. See [undecided](#undecided) for more details.
 
 #### `checkpointResponse.HasError()`
 
-The `hasError` method takes in a checkpoint response and returns `true` if it contains an error.
+The `HasError` method takes in a checkpoint response and returns `true` if it contains an error.
+
+#### `checkpointResponse.IsTimeout()`
+
+The `IsTimeout` method takes in a checkpoint response and returns `true` if the verification has timed out. At which point it is up to the application to decide how to proceed.
 
 ### useVerification
 

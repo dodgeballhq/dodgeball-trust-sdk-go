@@ -31,11 +31,6 @@ var (
 	ErrMissingCheckpointName = errors.New("checkpoint name is required")
 	ErrMissingEventIP        = errors.New("event IP is required")
 	ErrMissingDodgeballID    = errors.New("Dodgeball ID is required")
-
-	internalOpts = &CheckpointResponseOptions{
-		Sync:    true,
-		Timeout: BaseCheckpointTimeout,
-	}
 )
 
 // Config is the configuration for the Dodgeball client
@@ -72,12 +67,31 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 		return nil, ErrMissingDodgeballID
 	}
 
+	trivialTimeout := request.Options.Timeout <= 0
+	largeTimeout := request.Options.Timeout > 5*BaseCheckpointTimeout
+	mustPoll := trivialTimeout || largeTimeout
+	activeTimeout := BaseCheckpointTimeout
+	switch {
+	case mustPoll:
+		activeTimeout = BaseCheckpointTimeout
+	case !trivialTimeout:
+		activeTimeout = request.Options.Timeout
+	}
+
+	maximalTimeout := MaxTimeout
+
+	internalOpts := &CheckpointResponseOptions{
+		Sync:    true, // TODO: make configurable
+		Timeout: activeTimeout,
+		Webhook: request.Options.Webhook,
+	}
+
 	var checkpointResponse CheckpointResponse
 	numRepeats := 0
 	numFailures := 0
 
 	for !checkpointResponse.Success && numRepeats < MaxRetryCount {
-		resp, err := d.verify(&request)
+		resp, err := d.verify(&request, internalOpts)
 		if err != nil {
 			return nil, err
 		}
@@ -97,9 +111,11 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 	verificationID := checkpointResponse.Verification.ID
 	var verificationResponse CheckpointResponse
 
-	for !isResolved && numFailures < MaxRetryCount {
-		// TODO: some timeout?
-		time.Sleep(time.Millisecond * time.Duration(internalOpts.Timeout))
+	for trivialTimeout || request.Options.Timeout > numRepeats*activeTimeout && !isResolved && numFailures < MaxRetryCount {
+		time.Sleep(time.Millisecond * time.Duration(activeTimeout))
+		if activeTimeout < maximalTimeout {
+			activeTimeout = 2 * activeTimeout
+		}
 
 		resp, err := d.verification(&request, verificationID)
 		if err != nil {
@@ -125,6 +141,12 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 		}
 	}
 
+	if numFailures >= MaxRetryCount {
+		verificationResponse.Success = false
+		verificationResponse.timedOut = true
+		verificationResponse.Errors = append(verificationResponse.Errors, CheckpointResponseError{Code: 503, Message: "Service Unavailable: Maximum retry count exceeded"})
+	}
+
 	return &verificationResponse, nil
 }
 
@@ -135,7 +157,7 @@ type requestParams struct {
 	data     interface{}
 }
 
-func (d *Dodgeball) verify(request *CheckpointRequest) ([]byte, error) {
+func (d *Dodgeball) verify(request *CheckpointRequest, internalOpts *CheckpointResponseOptions) ([]byte, error) {
 	params := requestParams{
 		method:   http.MethodPost,
 		endpoint: "/verify",
