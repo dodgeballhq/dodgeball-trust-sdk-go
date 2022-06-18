@@ -19,12 +19,23 @@ const (
 
 	// BaseCheckpointTimeout is the default timeout for a checkpoint
 	BaseCheckpointTimeout = 100
+
+	// MaxTimeout is the maximum timeout for a checkpoint
+	MaxTimeout = 10000
+
+	// MaxRetryCount is the maximum number of retries for a checkpoint
+	MaxRetryCount = 3
 )
 
 var (
 	ErrMissingCheckpointName = errors.New("checkpoint name is required")
 	ErrMissingEventIP        = errors.New("event IP is required")
 	ErrMissingDodgeballID    = errors.New("Dodgeball ID is required")
+
+	internalOpts = &CheckpointResponseOptions{
+		Sync:    true,
+		Timeout: BaseCheckpointTimeout,
+	}
 )
 
 // Config is the configuration for the Dodgeball client
@@ -61,36 +72,15 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 		return nil, ErrMissingDodgeballID
 	}
 
-	internalOpts := &CheckpointResponseOptions{
-		Sync:    true,
-		Timeout: BaseCheckpointTimeout,
-	}
-
 	var checkpointResponse CheckpointResponse
 	numRepeats := 0
 	numFailures := 0
 
-	for !checkpointResponse.Success && numRepeats < 3 {
-		params := requestParams{
-			method:   http.MethodPost,
-			endpoint: "/verify",
-			headers: map[string]string{
-				"Dodgeball-Verification-Id": request.UseVerificationID,
-				"Dodgeball-Source-Id":       request.DodgeballID,
-				"Dodgeball-Customer-Id":     request.UserID,
-			},
-			data: map[string]interface{}{
-				"type":    request.CheckpointName,
-				"event":   request.Event,
-				"options": internalOpts,
-			},
-		}
-
-		resp, err := d.request(params)
+	for !checkpointResponse.Success && numRepeats < MaxRetryCount {
+		resp, err := d.verify(&request)
 		if err != nil {
-			return nil, fmt.Errorf("error calling verify %s", err.Error())
+			return nil, err
 		}
-
 		err = json.Unmarshal(resp, &checkpointResponse)
 		if err != nil {
 			return nil, fmt.Errorf("error unmarshalling verify response %s", err.Error())
@@ -107,24 +97,14 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 	verificationID := checkpointResponse.Verification.ID
 	var verificationResponse CheckpointResponse
 
-	for !isResolved && numFailures < 3 {
+	for !isResolved && numFailures < MaxRetryCount {
 		// TODO: some timeout?
 		time.Sleep(time.Millisecond * time.Duration(internalOpts.Timeout))
 
-		params := requestParams{
-			method:   http.MethodGet,
-			endpoint: "/verification/" + verificationID,
-			headers: map[string]string{
-				"Dodgeball-Verification-Id": request.UseVerificationID,
-				"Dodgeball-Source-Id":       request.DodgeballID,
-				"Dodgeball-Customer-Id":     request.UserID,
-			},
-		}
-		resp, err := d.request(params)
+		resp, err := d.verification(&request, verificationID)
 		if err != nil {
-			return nil, fmt.Errorf("error calling verification %s", err.Error())
+			return nil, err
 		}
-
 		err = json.Unmarshal(resp, &verificationResponse)
 		if err != nil {
 			return nil, fmt.Errorf("error unmarshalling verification response %s", err.Error())
@@ -153,6 +133,48 @@ type requestParams struct {
 	endpoint string
 	headers  map[string]string
 	data     interface{}
+}
+
+func (d *Dodgeball) verify(request *CheckpointRequest) ([]byte, error) {
+	params := requestParams{
+		method:   http.MethodPost,
+		endpoint: "/verify",
+		headers: map[string]string{
+			"Dodgeball-Verification-Id": request.UseVerificationID,
+			"Dodgeball-Source-Id":       request.DodgeballID,
+			"Dodgeball-Customer-Id":     request.UserID,
+		},
+		data: map[string]interface{}{
+			"type":    request.CheckpointName,
+			"event":   request.Event,
+			"options": internalOpts,
+		},
+	}
+
+	resp, err := d.request(params)
+	if err != nil {
+		return nil, fmt.Errorf("error calling verify %s", err.Error())
+	}
+
+	return resp, nil
+}
+
+func (d *Dodgeball) verification(request *CheckpointRequest, verificationID string) ([]byte, error) {
+	params := requestParams{
+		method:   http.MethodGet,
+		endpoint: "/verification/" + verificationID,
+		headers: map[string]string{
+			"Dodgeball-Verification-Id": request.UseVerificationID,
+			"Dodgeball-Source-Id":       request.DodgeballID,
+			"Dodgeball-Customer-Id":     request.UserID,
+		},
+	}
+	resp, err := d.request(params)
+	if err != nil {
+		return nil, fmt.Errorf("error calling verification %s", err.Error())
+	}
+
+	return resp, nil
 }
 
 func (d *Dodgeball) request(params requestParams) ([]byte, error) {
