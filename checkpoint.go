@@ -6,11 +6,12 @@ type CheckpointEvent struct {
 }
 
 type CheckpointRequest struct {
-	CheckpointName    string          `json:"checkpointName"`
-	Event             CheckpointEvent `json:"event"`
-	DodgeballID       string          `json:"dodgeballId"`
-	UserID            string          `json:"userId"`
-	UseVerificationID string          `json:"useVerificationId"`
+	CheckpointName    string                    `json:"checkpointName"`
+	Event             CheckpointEvent           `json:"event"`
+	DodgeballID       string                    `json:"dodgeballId"`
+	UserID            string                    `json:"userId"`
+	UseVerificationID string                    `json:"useVerificationId"`
+	Options           CheckpointResponseOptions `json:"options"`
 }
 
 type CheckpointResponseOptions struct {
@@ -19,18 +20,21 @@ type CheckpointResponseOptions struct {
 	Webhook string `json:"webhook"`
 }
 
+type CheckpointResponseError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
 type CheckpointResponse struct {
-	Success bool `json:"success"`
-	Errors  []struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
-	} `json:"errors"`
-	Version      string `json:"version"`
+	Success      bool                      `json:"success"`
+	Errors       []CheckpointResponseError `json:"errors"`
+	Version      string                    `json:"version"`
 	Verification struct {
 		ID      string `json:"id"`
 		Status  string `json:"status"`
 		Outcome string `json:"outcome"`
 	} `json:"verification"`
+	timedOut bool `json:"-"`
 }
 
 // IsRunning checks to see if the verification is still running
@@ -90,6 +94,14 @@ func (cr *CheckpointResponse) IsUndecided() bool {
 // HasError checks to see if the verification has encountered an error
 func (cr *CheckpointResponse) HasError() bool {
 	if !cr.Success || len(cr.Errors) > 0 {
+		return true
+	}
+	return false
+}
+
+// IsTimeout checks to see if the verification has timed out
+func (cr *CheckpointResponse) IsTimeout() bool {
+	if !cr.Success && cr.timedOut {
 		return true
 	}
 	return false
