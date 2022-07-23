@@ -30,7 +30,8 @@ const (
 var (
 	ErrMissingCheckpointName = errors.New("checkpoint name is required")
 	ErrMissingEventIP        = errors.New("event IP is required")
-	ErrMissingDodgeballID    = errors.New("Dodgeball ID is required")
+	ErrMissingSourceToken    = errors.New("source token is required")
+	ErrMissingSessionID      = errors.New("session ID is required")
 )
 
 // Config is the configuration for the Dodgeball client
@@ -63,8 +64,12 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 		return nil, ErrMissingEventIP
 	}
 
-	if request.DodgeballID == "" {
-		return nil, ErrMissingDodgeballID
+	if request.SourceToken == "" {
+		return nil, ErrMissingSourceToken
+	}
+
+	if request.SessionID == "" {
+		return nil, ErrMissingSessionID
 	}
 
 	trivialTimeout := request.Options.Timeout <= 0
@@ -160,11 +165,12 @@ type requestParams struct {
 func (d *Dodgeball) verify(request *CheckpointRequest, internalOpts *CheckpointResponseOptions) ([]byte, error) {
 	params := requestParams{
 		method:   http.MethodPost,
-		endpoint: "/verify",
+		endpoint: "/checkpoint",
 		headers: map[string]string{
 			"Dodgeball-Verification-Id": request.UseVerificationID,
-			"Dodgeball-Source-Id":       request.DodgeballID,
+			"Dodgeball-Source-Token":    request.SourceToken,
 			"Dodgeball-Customer-Id":     request.UserID,
+			"Dodgeball-Session-Id":      request.SessionID,
 		},
 		data: map[string]interface{}{
 			"type":    request.CheckpointName,
@@ -175,7 +181,7 @@ func (d *Dodgeball) verify(request *CheckpointRequest, internalOpts *CheckpointR
 
 	resp, err := d.request(params)
 	if err != nil {
-		return nil, fmt.Errorf("error calling verify %s", err.Error())
+		return nil, fmt.Errorf("error calling checkpoint %s", err.Error())
 	}
 
 	return resp, nil
@@ -187,8 +193,9 @@ func (d *Dodgeball) verification(request *CheckpointRequest, verificationID stri
 		endpoint: "/verification/" + verificationID,
 		headers: map[string]string{
 			"Dodgeball-Verification-Id": request.UseVerificationID,
-			"Dodgeball-Source-Id":       request.DodgeballID,
+			"Dodgeball-Source-Token":    request.SourceToken,
 			"Dodgeball-Customer-Id":     request.UserID,
+			"Dodgeball-Session-Id":      request.SessionID,
 		},
 	}
 	resp, err := d.request(params)

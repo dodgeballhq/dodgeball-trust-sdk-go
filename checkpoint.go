@@ -8,8 +8,9 @@ type CheckpointEvent struct {
 type CheckpointRequest struct {
 	CheckpointName    string                    `json:"checkpointName"`
 	Event             CheckpointEvent           `json:"event"`
-	DodgeballID       string                    `json:"dodgeballId"`
+	SourceToken       string                    `json:"sourceToken"`
 	UserID            string                    `json:"userId"`
+	SessionID         string                    `json:"sessionId"`
 	UseVerificationID string                    `json:"useVerificationId"`
 	Options           CheckpointResponseOptions `json:"options"`
 }

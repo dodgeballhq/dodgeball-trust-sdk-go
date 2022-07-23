@@ -82,7 +82,8 @@ func orders(w http.ResponseWriter, req *http.Request) {
         "order": "order456",
       },
     },
-    DodgeballID: req.Header.Get("x-dodgeball-id"), // Obtained from the Dodgeball Client SDK, represents the device making the request
+    SourceToken: req.Header.Get("x-dodgeball-source-token"), // Obtained from the Dodgeball Client SDK, represents the device making the request
+    SessionID: "session_def456",
     UserID: "user123",
     UseVerificationID: req.Header.Get("x-dodgeball-verification-id"),
   }
@@ -200,7 +201,8 @@ checkpointRequest := &dodgeball.CheckpointRequest{
       "currency": "USD",
     },
   },
-  DodgeballID: req.Header.Get("x-dodgeball-id"), // Obtained from the Dodgeball Client SDK, represents the device making the request
+  SourceToken: req.Header.Get("x-dodgeball-source-token"), // Obtained from the Dodgeball Client SDK, represents the device making the request
+  SessionID: "session_def456",// The current session ID of the request
   UserID: "user123", // When you know the ID representing the user making the request in your database (ie after registration), pass it in here. Otherwise leave it blank.
   UseVerificationID: req.Header.Get("x-dodgeball-verification-id"), // Optional, if you have a verification ID, you can pass it in here
 }
@@ -208,15 +210,15 @@ checkpointRequest := &dodgeball.CheckpointRequest{
 checkpointResponse, err := dodgeballClient.Checkpoint(checkpointRequest)
 ```
 
-| Parameter           | Required | Description                                                                                                                                                                 |
-| :------------------ | :------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CheckpointName`    | `true`   | The name of the checkpoint to call.                                                                                                                                         |
-| `Event`             | `true`   | The event to send to the checkpoint.                                                                                                                                        |
-| `Event.IP`          | `true`   | The IP address of the device where the request originated.                                                                                                                  |
-| `Event.Data`        | `false`  | Interface containing arbitrary data to send in to the checkpoint.                                                                                                           |
-| `DodgeballID`       | `true`   | A Dodgeball generated ID representing the device making the request. Obtained from the [Dodgeball Trust Client SDK](https://npmjs.com/package/@dodgeball/trust-sdk-client). |
-| `UserID`            | `false`  | When you know the ID representing the user making the request in your database (ie after registration), pass it in here. Otherwise leave it blank.                          |
-| `UseVerificationID` | `false`  | If a previous verification was performed on this request, pass it in here. See the [useVerification](#useverification) section below for more details.                      |
+| Parameter           | Required | Description                                                                                                                                                                    |
+| :------------------ | :------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CheckpointName`    | `true`   | The name of the checkpoint to call.                                                                                                                                            |
+| `Event`             | `true`   | The event to send to the checkpoint.                                                                                                                                           |
+| `Event.IP`          | `true`   | The IP address of the device where the request originated.                                                                                                                     |
+| `Event.Data`        | `false`  | Interface containing arbitrary data to send in to the checkpoint.                                                                                                              |
+| `SourceToken`       | `true`   | A Dodgeball generated token representing the device making the request. Obtained from the [Dodgeball Trust Client SDK](https://npmjs.com/package/@dodgeball/trust-sdk-client). |
+| `UserID`            | `false`  | When you know the ID representing the user making the request in your database (ie after registration), pass it in here. Otherwise leave it blank.                             |
+| `UseVerificationID` | `false`  | If a previous verification was performed on this request, pass it in here. See the [useVerification](#useverification) section below for more details.                         |
 
 ### Interpreting the Checkpoint Response
 
@@ -422,36 +424,37 @@ Sometimes additional input is required from the user before making a determinati
 
 ```js
 // In your frontend application...
-const placeOrder = async (order, previousVerification = null) => {
-  const dodgeballId = await dodgeball.getIdentity();
+const placeOrder = async (order, previousVerificationId = null) => {
+  const sourceToken = await dodgeball.getSourceToken();
 
   const endpointResponse = await axios.post(
     "/api/orders",
     { order },
     {
       headers: {
-        "x-dodgeball-id": dodgeballId,
-        "x-dodgeball-verification-id": previousVerificationId,
+        "x-dodgeball-source-token": sourceToken, // Pass the source token to your API
+        "x-dodgeball-verification-id": previousVerificationId, // If a previous verification was performed, pass it along to your API
       },
     }
   );
 
   dodgeball.handleVerification(endpointResponse.data.verification, {
     onVerified: async (verification) => {
-      // If a verification was performed and it is approved, pass it in to your API call
-      await placeOrder(order, verification);
+      // If an additional check was performed and the request is approved, simply pass the verification ID in to your API
+      await placeOrder(order, verification.id);
     },
     onApproved: async () => {
-      // If no additional verification was required, update the view to show that the order was placed
-      console.log("Order placed!");
+      // If no additional check was required, update the view to show that the order was placed
+      setIsOrderPlaced(true);
     },
     onDenied: async (verification) => {
-      // If the action was denied, update the view to show the rejection...
-      console.log("Order denied.");
+      // If the action was denied, update the view to show the rejection
+      setIsOrderDenied(true);
     },
     onError: async (error) => {
-      // If there was an error performing the verification, handle it here...
-      console.log("Verification error:", error);
+      // If there was an error performing the verification, display it
+      setError(error);
+      setIsPlacingOrder(false);
     },
   });
 };
