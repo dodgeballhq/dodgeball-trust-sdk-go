@@ -38,6 +38,7 @@ var (
 type Config struct {
 	APIVersion string
 	APIURL     string
+	IsEnabled  bool
 }
 
 // NewConfig returns a new Config using defaults
@@ -45,6 +46,7 @@ func NewConfig() *Config {
 	return &Config{
 		APIVersion: APIVersion,
 		APIURL:     APIURL,
+		IsEnabled:  true,
 	}
 }
 
@@ -70,6 +72,19 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 
 	if request.SessionID == "" {
 		return nil, ErrMissingSessionID
+	}
+
+	if !d.config.IsEnabled {
+		return &CheckpointResponse{
+			Success: true,
+			Errors:  []CheckpointResponseError{},
+			Version: d.config.APIVersion,
+			Verification: CheckpointResponseVerification{
+				ID:      "DODGEBALL_DISABLED",
+				Status:  VerificationStatusComplete,
+				Outcome: VerificationOutcomeApproved,
+			},
+		}, nil
 	}
 
 	trivialTimeout := request.Options.Timeout <= 0
