@@ -26,16 +26,18 @@ type CheckpointResponseError struct {
 	Message string `json:"message"`
 }
 
+type CheckpointResponseVerification struct {
+	ID      string `json:"id"`
+	Status  string `json:"status"`
+	Outcome string `json:"outcome"`
+}
+
 type CheckpointResponse struct {
-	Success      bool                      `json:"success"`
-	Errors       []CheckpointResponseError `json:"errors"`
-	Version      string                    `json:"version"`
-	Verification struct {
-		ID      string `json:"id"`
-		Status  string `json:"status"`
-		Outcome string `json:"outcome"`
-	} `json:"verification"`
-	timedOut bool `json:"-"`
+	Success      bool                           `json:"success"`
+	Errors       []CheckpointResponseError      `json:"errors"`
+	Version      string                         `json:"version"`
+	Verification CheckpointResponseVerification `json:"verification"`
+	timedOut     bool                           `json:"-"`
 }
 
 // IsRunning checks to see if the verification is still running

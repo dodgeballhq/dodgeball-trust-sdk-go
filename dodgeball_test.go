@@ -11,8 +11,14 @@ func TestDodgeball_Checkpoint(t *testing.T) {
 		request CheckpointRequest
 	}
 	config := Config{
-		APIURL:     "http://localhost:3001/",
+		APIURL:     "https://api.dodgeballhq.com/",
 		APIVersion: "v1",
+		IsEnabled:  true,
+	}
+	configDisabled := Config{
+		APIURL:     "https://api.dodgeballhq.com/",
+		APIVersion: "v1",
+		IsEnabled:  false,
 	}
 
 	tests := []struct {
@@ -22,6 +28,17 @@ func TestDodgeball_Checkpoint(t *testing.T) {
 		wantErr bool
 	}{
 		{"test1", fields{"secret", &config}, args{CheckpointRequest{
+			CheckpointName: "test",
+			Event: CheckpointEvent{
+				IP:   "123.123.123.123",
+				Data: nil,
+			},
+			SourceToken:       "dodgeballID",
+			SessionID:         "sessionID",
+			UserID:            "userID",
+			UseVerificationID: "verifyID",
+		}}, false},
+		{"test2", fields{"secret", &configDisabled}, args{CheckpointRequest{
 			CheckpointName: "test",
 			Event: CheckpointEvent{
 				IP:   "123.123.123.123",
