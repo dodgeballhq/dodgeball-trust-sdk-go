@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -243,7 +243,7 @@ func (d *Dodgeball) request(params requestParams) ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error marshaling data %s", err.Error())
 		}
-		req.Body = ioutil.NopCloser(bytes.NewReader(dataBytes))
+		req.Body = io.NopCloser(bytes.NewReader(dataBytes))
 	}
 
 	httpResponse, err := client.Do(req)
@@ -252,7 +252,7 @@ func (d *Dodgeball) request(params requestParams) ([]byte, error) {
 	}
 	defer httpResponse.Body.Close()
 
-	return ioutil.ReadAll(httpResponse.Body)
+	return io.ReadAll(httpResponse.Body)
 }
 
 func (d *Dodgeball) buildURL(endpoint string) string {
