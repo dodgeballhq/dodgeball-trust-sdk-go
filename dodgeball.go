@@ -30,7 +30,6 @@ const (
 var (
 	ErrMissingCheckpointName = errors.New("checkpoint name is required")
 	ErrMissingEventIP        = errors.New("event IP is required")
-	ErrMissingSourceToken    = errors.New("source token is required")
 	ErrMissingSessionID      = errors.New("session ID is required")
 )
 
@@ -64,10 +63,6 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 
 	if request.Event.IP == "" {
 		return nil, ErrMissingEventIP
-	}
-
-	if request.SourceToken == "" {
-		return nil, ErrMissingSourceToken
 	}
 
 	if request.SessionID == "" {
