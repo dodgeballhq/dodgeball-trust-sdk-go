@@ -197,8 +197,13 @@ checkpointRequest := &dodgeball.CheckpointRequest{
     IP: "127.0.0.1", // The IP address of the device where the request originated
     Data: map[string]interface{}{
       // Arbitrary data to send in to the checkpoint...
-      "amount": 100,
-      "currency": "USD",
+      "transaction": map[string]interface{}{
+        "amount": 100,
+        "currency": "USD",
+      },
+      "paymentMethod": map[string]interface{}{
+        "token": "ghi789",
+      },
     },
   },
   SourceToken: req.Header.Get("x-dodgeball-source-token"), // Obtained from the Dodgeball Client SDK, represents the device making the request
@@ -216,7 +221,7 @@ checkpointResponse, err := dodgeballClient.Checkpoint(checkpointRequest)
 | `Event`             | `true`   | The event to send to the checkpoint.                                                                                                                                           |
 | `Event.IP`          | `true`   | The IP address of the device where the request originated.                                                                                                                     |
 | `Event.Data`        | `false`  | Interface containing arbitrary data to send in to the checkpoint.                                                                                                              |
-| `SourceToken`       | `true`   | A Dodgeball generated token representing the device making the request. Obtained from the [Dodgeball Trust Client SDK](https://npmjs.com/package/@dodgeball/trust-sdk-client). |
+| `SourceToken`       | `false`  | A Dodgeball generated token representing the device making the request. Obtained from the [Dodgeball Trust Client SDK](https://npmjs.com/package/@dodgeball/trust-sdk-client). |
 | `UserID`            | `false`  | When you know the ID representing the user making the request in your database (ie after registration), pass it in here. Otherwise leave it blank.                             |
 | `UseVerificationID` | `false`  | If a previous verification was performed on this request, pass it in here. See the [useVerification](#useverification) section below for more details.                         |
 
@@ -419,6 +424,48 @@ The `IsTimeout` method takes in a checkpoint response and returns `true` if the 
 Sometimes additional input is required from the user before making a determination about how to proceed. For example, if a user should be required to perform 2FA before being allowed to proceed, the checkpoint response will contain a verification with `status` of `BLOCKED` and outcome of `PENDING`. In this scenario, you will want to return the verification to your frontend application. Inside your frontend application, you can pass the returned verification directly to the `dodgeball.handleVerification()` method to automatically handle gathering additional input from the user. Continuing with our 2FA example, the user would be prompted to select a phone number and enter a code sent to that number. Once the additional input is received, the frontend application should simply send along the ID of the verification performed to your API. Passing that verification ID to the `useVerification` option will allow that verification to be used for this checkpoint instead of creating a new one. This prevents duplicate verifications being performed on the user.
 
 **Important Note:** To prevent replay attacks, each verification ID can only be passed to `useVerification` once.
+
+### Track an Event
+
+---
+
+You can track additional information about a user's journey by submitting tracking events from your server. This information will be added to the user's profile and is made available to checkpoints.
+
+```go
+trackOptions := &dodgeball.CheckpointRequest{
+  Event: dodgeball.CheckpointEvent{
+    Type: "EVENT_NAME", // Can be any string you choose
+    Data: map[string]interface{}{
+      // Arbitrary data to send in to the checkpoint...
+      "transaction": map[string]interface{}{
+        "amount": 100,
+        "currency": "USD",
+      },
+      "paymentMethod": map[string]interface{}{
+        "token": "ghi789",
+      },
+    },
+  },
+  SourceToken: req.Header.Get("x-dodgeball-source-token"), // Obtained from the Dodgeball Client SDK, represents the device making the request
+  SessionID: "session_def456",// The current session ID of the request
+  UserID: "user123", // When you know the ID representing the user making the request in your database (ie after registration), pass it in here. Otherwise leave it blank.
+}
+
+err := dodgeballClient.Track(trackOptions)
+if err != nil {
+  // Handle error
+}
+```
+
+| Parameter         | Required | Description                                                                                                                                                                    |
+| :---------------- | :------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Event`           | `true`   | The event to send to the checkpoint.                                                                                                                                           |
+| `Event.Type`      | `true`   | The name of the event, may be any string under 256 characters, that indicates what took place.                                                                                 |
+| `Event.EventTime` | `false`  | The time the event occurred, in milliseconds since the epoch (defaults to now).                                                                                                |
+| `Event.Data`      | `false`  | Interface containing arbitrary data to send in to track.                                                                                                                       |
+| `SourceToken`     | `false`  | A Dodgeball generated token representing the device making the request. Obtained from the [Dodgeball Trust Client SDK](https://npmjs.com/package/@dodgeball/trust-sdk-client). |
+| `SessionID`       | `true`   | The current session ID of the request.                                                                                                                                         |
+| `UserID`          | `false`  | When you know the ID representing the user making the request in your database (ie after registration), pass it in here. Otherwise leave it blank.                             |
 
 #### End-to-End Example
 

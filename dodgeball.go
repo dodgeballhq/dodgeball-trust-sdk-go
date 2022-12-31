@@ -55,6 +55,19 @@ type Dodgeball struct {
 	config *Config
 }
 
+// Track will add additional information about a user's journey by submitting events from your server
+func (d *Dodgeball) Track(options TrackOptions) error {
+	if options.Event.EventTime == 0 {
+		options.Event.EventTime = time.Now().UnixMilli()
+	}
+
+	_, err := d.track(&options)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Checkpoint will check with Dodgeball to verify if the request is allowed to proceed
 func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, error) {
 	if request.CheckpointName == "" {
@@ -170,6 +183,28 @@ type requestParams struct {
 	endpoint string
 	headers  map[string]string
 	data     interface{}
+}
+
+func (d *Dodgeball) track(request *TrackOptions) ([]byte, error) {
+	params := requestParams{
+		method:   http.MethodPost,
+		endpoint: "/track",
+		headers: map[string]string{
+			"Dodgeball-Source-Token": request.SourceToken,
+			"Dodgeball-Customer-Id":  request.UserID,
+			"Dodgeball-Session-Id":   request.SessionID,
+		},
+		data: map[string]interface{}{
+			"event": request.Event,
+		},
+	}
+
+	resp, err := d.request(params)
+	if err != nil {
+		return nil, fmt.Errorf("error calling checkpoint %s", err.Error())
+	}
+
+	return resp, nil
 }
 
 func (d *Dodgeball) verify(request *CheckpointRequest, internalOpts *CheckpointResponseOptions) ([]byte, error) {
