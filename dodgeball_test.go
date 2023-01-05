@@ -11,12 +11,12 @@ func TestDodgeball_Checkpoint(t *testing.T) {
 		request CheckpointRequest
 	}
 	config := Config{
-		APIURL:     "https://api.dodgeballhq.com/",
+		APIURL:     "https://api.dev.dodgeballhq.com/",
 		APIVersion: "v1",
 		IsEnabled:  true,
 	}
 	configDisabled := Config{
-		APIURL:     "https://api.dodgeballhq.com/",
+		APIURL:     "https://api.dev.dodgeballhq.com/",
 		APIVersion: "v1",
 		IsEnabled:  false,
 	}
@@ -72,7 +72,7 @@ func TestDodgeball_Track(t *testing.T) {
 		request TrackOptions
 	}
 	config := Config{
-		APIURL:     "https://api.dodgeballhq.com/",
+		APIURL:     "https://api.dev.dodgeballhq.com/",
 		APIVersion: "v1",
 		IsEnabled:  true,
 	}
@@ -85,12 +85,12 @@ func TestDodgeball_Track(t *testing.T) {
 	}{
 		{"track test1", fields{"secret", &config}, args{TrackOptions{
 			Event: TrackEvent{
-				Type: "testtracktype",
+				Type: "TEST_TRACK_EVENT",
 				Data: nil,
 			},
 			SourceToken: "dodgeballID",
-			SessionID:   "sessionID",
-			UserID:      "userID",
+			SessionID:   "64de1794-8bb9-11ed-a1eb-0242ac120004",
+			UserID:      "64de1794-8bb9-11ed-a1eb-0242ac120002",
 		}}, false},
 	}
 	for _, tt := range tests {

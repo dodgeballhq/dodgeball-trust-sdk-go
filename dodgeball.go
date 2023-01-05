@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 )
@@ -61,10 +62,22 @@ func (d *Dodgeball) Track(options TrackOptions) error {
 		options.Event.EventTime = time.Now().UnixMilli()
 	}
 
-	_, err := d.track(&options)
+	resp, err := d.track(&options)
 	if err != nil {
 		return err
 	}
+
+	var trackResponse TrackResponse
+	err = json.Unmarshal(resp, &trackResponse)
+	if err != nil {
+		return fmt.Errorf("error unmarshalling track response %s", err.Error())
+	}
+
+	if !trackResponse.Success {
+		log.Print(trackResponse)
+		return fmt.Errorf("track failed")
+	}
+
 	return nil
 }
 
@@ -195,13 +208,15 @@ func (d *Dodgeball) track(request *TrackOptions) ([]byte, error) {
 			"Dodgeball-Session-Id":   request.SessionID,
 		},
 		data: map[string]interface{}{
-			"event": request.Event,
+			"type":      request.Event.Type,
+			"data":      request.Event.Data,
+			"eventTime": request.Event.EventTime,
 		},
 	}
 
 	resp, err := d.request(params)
 	if err != nil {
-		return nil, fmt.Errorf("error calling checkpoint %s", err.Error())
+		return nil, fmt.Errorf("error calling track %s", err.Error())
 	}
 
 	return resp, nil
@@ -219,7 +234,7 @@ func (d *Dodgeball) verify(request *CheckpointRequest, internalOpts *CheckpointR
 		},
 		data: map[string]interface{}{
 			"type":    request.CheckpointName,
-			"event":   request.Event,
+			"data":    request.Event.Data,
 			"options": internalOpts,
 		},
 	}
