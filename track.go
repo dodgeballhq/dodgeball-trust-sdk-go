@@ -12,3 +12,13 @@ type TrackOptions struct {
 	UserID      string     `json:"userId"`
 	SessionID   string     `json:"sessionId"`
 }
+
+type TrackResponseError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+type TrackResponse struct {
+	Success bool                 `json:"success"`
+	Errors  []TrackResponseError `json:"errors"`
+}

@@ -1,6 +1,7 @@
 package dodgeball
 
 type CheckpointEvent struct {
+	Type string      `json:"type"`
 	IP   string      `json:"ip"`
 	Data interface{} `json:"data"`
 }
