@@ -27,27 +27,28 @@ func TestDodgeball_Checkpoint(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"checkpoint test1", fields{"secret", &config}, args{CheckpointRequest{
-			CheckpointName: "test",
+		{"checkpoint test1", fields{"", &config}, args{CheckpointRequest{
+			CheckpointName: "TEST_CHECKPOINT",
 			Event: CheckpointEvent{
 				IP:   "123.123.123.123",
-				Data: nil,
+				Data: map[string]interface{}{},
 			},
-			SourceToken:       "dodgeballID",
-			SessionID:         "sessionID",
-			UserID:            "userID",
-			UseVerificationID: "verifyID",
+			Options: CheckpointResponseOptions{
+				Timeout: 100,
+			},
+			SessionID:         "64de1794-8bb9-11ed-a1eb-0242ac120004",
+			UserID:            "64de1794-8bb9-11ed-a1eb-0242ac120002",
+			UseVerificationID: "",
 		}}, false},
-		{"checkpoint test2", fields{"secret", &configDisabled}, args{CheckpointRequest{
-			CheckpointName: "test",
+		{"checkpoint test2", fields{"", &configDisabled}, args{CheckpointRequest{
+			CheckpointName: "TEST_CHECKPOINT2",
 			Event: CheckpointEvent{
 				IP:   "123.123.123.123",
-				Data: nil,
+				Data: map[string]interface{}{},
 			},
-			SourceToken:       "dodgeballID",
-			SessionID:         "sessionID",
-			UserID:            "userID",
-			UseVerificationID: "verifyID",
+			SessionID:         "64de1794-8bb9-11ed-a1eb-0242ac120004",
+			UserID:            "64de1794-8bb9-11ed-a1eb-0242ac120002",
+			UseVerificationID: "",
 		}}, false},
 	}
 	for _, tt := range tests {

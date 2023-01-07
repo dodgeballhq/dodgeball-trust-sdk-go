@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 )
@@ -74,7 +73,6 @@ func (d *Dodgeball) Track(options TrackOptions) error {
 	}
 
 	if !trackResponse.Success {
-		log.Print(trackResponse)
 		return fmt.Errorf("track failed")
 	}
 
@@ -108,6 +106,8 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 		}, nil
 	}
 
+	request.Event.Type = request.CheckpointName
+
 	trivialTimeout := request.Options.Timeout <= 0
 	largeTimeout := request.Options.Timeout > 5*BaseCheckpointTimeout
 	mustPoll := trivialTimeout || largeTimeout
@@ -122,7 +122,7 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 	maximalTimeout := MaxTimeout
 
 	internalOpts := &CheckpointResponseOptions{
-		Sync:    true, // TODO: make configurable
+		Sync:    false, // TODO: make configurable
 		Timeout: activeTimeout,
 		Webhook: request.Options.Webhook,
 	}
@@ -223,18 +223,22 @@ func (d *Dodgeball) track(request *TrackOptions) ([]byte, error) {
 }
 
 func (d *Dodgeball) verify(request *CheckpointRequest, internalOpts *CheckpointResponseOptions) ([]byte, error) {
+	headers := map[string]string{
+		"Dodgeball-Verification-Id": request.UseVerificationID,
+		"Dodgeball-Customer-Id":     request.UserID,
+		"Dodgeball-Session-Id":      request.SessionID,
+	}
+
+	if request.SourceToken != "" {
+		headers["Dodgeball-Source-Token"] = request.SourceToken
+	}
+
 	params := requestParams{
 		method:   http.MethodPost,
 		endpoint: "/checkpoint",
-		headers: map[string]string{
-			"Dodgeball-Verification-Id": request.UseVerificationID,
-			"Dodgeball-Source-Token":    request.SourceToken,
-			"Dodgeball-Customer-Id":     request.UserID,
-			"Dodgeball-Session-Id":      request.SessionID,
-		},
+		headers:  headers,
 		data: map[string]interface{}{
-			"type":    request.CheckpointName,
-			"data":    request.Event.Data,
+			"event":   request.Event,
 			"options": internalOpts,
 		},
 	}
