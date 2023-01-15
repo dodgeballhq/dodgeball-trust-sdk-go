@@ -132,7 +132,7 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 	numFailures := 0
 
 	for !checkpointResponse.Success && numRepeats < MaxRetryCount {
-		resp, err := d.verify(&request, internalOpts)
+		resp, err := d.checkpoint(&request, internalOpts)
 		if err != nil {
 			return nil, err
 		}
@@ -222,7 +222,7 @@ func (d *Dodgeball) track(request *TrackOptions) ([]byte, error) {
 	return resp, nil
 }
 
-func (d *Dodgeball) verify(request *CheckpointRequest, internalOpts *CheckpointResponseOptions) ([]byte, error) {
+func (d *Dodgeball) checkpoint(request *CheckpointRequest, internalOpts *CheckpointResponseOptions) ([]byte, error) {
 	headers := map[string]string{
 		"Dodgeball-Verification-Id": request.UseVerificationID,
 		"Dodgeball-Customer-Id":     request.UserID,
