@@ -432,8 +432,8 @@ Sometimes additional input is required from the user before making a determinati
 You can track additional information about a user's journey by submitting tracking events from your server. This information will be added to the user's profile and is made available to checkpoints.
 
 ```go
-trackOptions := &dodgeball.CheckpointRequest{
-  Event: dodgeball.CheckpointEvent{
+trackOptions := &dodgeball.TrackOptions{
+  Event: dodgeball.TrackEvent{
     Type: "EVENT_NAME", // Can be any string you choose
     Data: map[string]interface{}{
       // Arbitrary data to send in to the checkpoint...
@@ -451,7 +451,7 @@ trackOptions := &dodgeball.CheckpointRequest{
   UserID: "user123", // When you know the ID representing the user making the request in your database (ie after registration), pass it in here. Otherwise leave it blank.
 }
 
-err := dodgeballClient.Track(trackOptions)
+err := dodgeballClient.Event(trackOptions)
 if err != nil {
   // Handle error
 }

@@ -56,12 +56,12 @@ type Dodgeball struct {
 }
 
 // Track will add additional information about a user's journey by submitting events from your server
-func (d *Dodgeball) Track(options TrackOptions) error {
+func (d *Dodgeball) Event(options TrackOptions) error {
 	if options.Event.EventTime == 0 {
 		options.Event.EventTime = time.Now().UnixMilli()
 	}
 
-	resp, err := d.track(&options)
+	resp, err := d.event(&options)
 	if err != nil {
 		return err
 	}
@@ -198,7 +198,7 @@ type requestParams struct {
 	data     interface{}
 }
 
-func (d *Dodgeball) track(request *TrackOptions) ([]byte, error) {
+func (d *Dodgeball) event(request *TrackOptions) ([]byte, error) {
 	params := requestParams{
 		method:   http.MethodPost,
 		endpoint: "/track",

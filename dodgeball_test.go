@@ -2,6 +2,8 @@ package dodgeball
 
 import "testing"
 
+const DODGEBALL_SECRET_KEY = "1c29d5d6593011ec9412470128c0fd71"
+
 func TestDodgeball_Checkpoint(t *testing.T) {
 	type fields struct {
 		secret string
@@ -11,12 +13,12 @@ func TestDodgeball_Checkpoint(t *testing.T) {
 		request CheckpointRequest
 	}
 	config := Config{
-		APIURL:     "https://api.dev.dodgeballhq.com/",
+		APIURL:     "http://localhost:3001/",
 		APIVersion: "v1",
 		IsEnabled:  true,
 	}
 	configDisabled := Config{
-		APIURL:     "https://api.dev.dodgeballhq.com/",
+		APIURL:     "http://localhost:3001/",
 		APIVersion: "v1",
 		IsEnabled:  false,
 	}
@@ -27,20 +29,20 @@ func TestDodgeball_Checkpoint(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"checkpoint test1", fields{"", &config}, args{CheckpointRequest{
+		{"checkpoint test1", fields{DODGEBALL_SECRET_KEY, &config}, args{CheckpointRequest{
 			CheckpointName: "TEST_CHECKPOINT",
 			Event: CheckpointEvent{
 				IP:   "123.123.123.123",
 				Data: map[string]interface{}{},
 			},
 			Options: CheckpointResponseOptions{
-				Timeout: 100,
+				Timeout: 1000,
 			},
 			SessionID:         "64de1794-8bb9-11ed-a1eb-0242ac120004",
 			UserID:            "64de1794-8bb9-11ed-a1eb-0242ac120002",
 			UseVerificationID: "",
 		}}, false},
-		{"checkpoint test2", fields{"", &configDisabled}, args{CheckpointRequest{
+		{"checkpoint test2", fields{DODGEBALL_SECRET_KEY, &configDisabled}, args{CheckpointRequest{
 			CheckpointName: "TEST_CHECKPOINT2",
 			Event: CheckpointEvent{
 				IP:   "123.123.123.123",
@@ -64,7 +66,7 @@ func TestDodgeball_Checkpoint(t *testing.T) {
 	}
 }
 
-func TestDodgeball_Track(t *testing.T) {
+func TestDodgeball_Event(t *testing.T) {
 	type fields struct {
 		secret string
 		config *Config
@@ -73,7 +75,7 @@ func TestDodgeball_Track(t *testing.T) {
 		request TrackOptions
 	}
 	config := Config{
-		APIURL:     "https://api.dev.dodgeballhq.com/",
+		APIURL:     "http://localhost:3001/",
 		APIVersion: "v1",
 		IsEnabled:  true,
 	}
@@ -84,12 +86,12 @@ func TestDodgeball_Track(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"track test1", fields{"secret", &config}, args{TrackOptions{
+		{"track test1", fields{DODGEBALL_SECRET_KEY, &config}, args{TrackOptions{
 			Event: TrackEvent{
 				Type: "TEST_TRACK_EVENT",
 				Data: nil,
 			},
-			SourceToken: "dodgeballID",
+			SourceToken: "",
 			SessionID:   "64de1794-8bb9-11ed-a1eb-0242ac120004",
 			UserID:      "64de1794-8bb9-11ed-a1eb-0242ac120002",
 		}}, false},
@@ -100,8 +102,8 @@ func TestDodgeball_Track(t *testing.T) {
 				secret: tt.fields.secret,
 				config: tt.fields.config,
 			}
-			if err := d.Track(tt.args.request); (err != nil) != tt.wantErr {
-				t.Errorf("Dodgeball.Track() error = %v, wantErr %v", err, tt.wantErr)
+			if err := d.Event(tt.args.request); (err != nil) != tt.wantErr {
+				t.Errorf("Dodgeball.Event() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
