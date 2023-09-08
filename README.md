@@ -221,7 +221,8 @@ checkpointResponse, err := dodgeballClient.Checkpoint(checkpointRequest)
 | `Event`             | `true`   | The event to send to the checkpoint.                                                                                                                                           |
 | `Event.IP`          | `true`   | The IP address of the device where the request originated.                                                                                                                     |
 | `Event.Data`        | `false`  | Interface containing arbitrary data to send in to the checkpoint.                                                                                                              |
-| `SourceToken`       | `false`  | A Dodgeball generated token representing the device making the request. Obtained from the [Dodgeball Trust Client SDK](https://npmjs.com/package/@dodgeball/trust-sdk-client). |
+| `SourceToken` | `Either a SessionID or SourceToken must be provided` | A Dodgeball generated token representing the device making the request. Obtained from the [Dodgeball Trust Client SDK](https://npmjs.com/package/@dodgeball/trust-sdk-client). |
+| `SessionID` | `Either a SessionID or SourceToken must be provided` | The current session ID of the request. |
 | `UserID`            | `false`  | When you know the ID representing the user making the request in your database (ie after registration), pass it in here. Otherwise leave it blank.                             |
 | `UseVerificationID` | `false`  | If a previous verification was performed on this request, pass it in here. See the [useVerification](#useverification) section below for more details.                         |
 

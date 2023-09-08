@@ -28,9 +28,9 @@ const (
 )
 
 var (
-	ErrMissingCheckpointName = errors.New("checkpoint name is required")
-	ErrMissingEventIP        = errors.New("event IP is required")
-	ErrMissingSessionID      = errors.New("session ID is required")
+	ErrMissingCheckpointName              = errors.New("checkpoint name is required")
+	ErrMissingEventIP                     = errors.New("event IP is required")
+	ErrMissingSessionIDOrSourceToken      = errors.New("either session ID or sourceToken is required")
 )
 
 // Config is the configuration for the Dodgeball client
@@ -89,8 +89,8 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 		return nil, ErrMissingEventIP
 	}
 
-	if request.SessionID == "" {
-		return nil, ErrMissingSessionID
+	if request.SessionID == "" && request.SourceToken == "" {
+		return nil, ErrMissingSessionIDOrSourceToken
 	}
 
 	if !d.config.IsEnabled {

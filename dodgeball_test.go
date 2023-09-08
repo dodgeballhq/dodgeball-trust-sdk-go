@@ -52,6 +52,16 @@ func TestDodgeball_Checkpoint(t *testing.T) {
 			UserID:            "64de1794-8bb9-11ed-a1eb-0242ac120002",
 			UseVerificationID: "",
 		}}, false},
+		{"checkpoint test3", fields{DODGEBALL_SECRET_KEY, &configDisabled}, args{CheckpointRequest{
+			CheckpointName: "TEST_CHECKPOINT2",
+			Event: CheckpointEvent{
+				IP:   "123.123.123.123",
+				Data: map[string]interface{}{},
+			},
+			SourceToken: 		 "64de1794-8bb9-11ed-a1eb-0242ac120004",
+			UserID:            "64de1794-8bb9-11ed-a1eb-0242ac120002",
+			UseVerificationID: "",
+		}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -93,6 +103,14 @@ func TestDodgeball_Event(t *testing.T) {
 			},
 			SourceToken: "",
 			SessionID:   "64de1794-8bb9-11ed-a1eb-0242ac120004",
+			UserID:      "64de1794-8bb9-11ed-a1eb-0242ac120002",
+		}}, false},
+		{"track test2", fields{DODGEBALL_SECRET_KEY, &config}, args{TrackOptions{
+			Event: TrackEvent{
+				Type: "TEST_TRACK_EVENT",
+				Data: nil,
+			},
+			SourceToken: "64de1794-8bb9-11ed-a1eb-0242ac120004",
 			UserID:      "64de1794-8bb9-11ed-a1eb-0242ac120002",
 		}}, false},
 	}
