@@ -28,9 +28,9 @@ const (
 )
 
 var (
-	ErrMissingCheckpointName              = errors.New("checkpoint name is required")
-	ErrMissingEventIP                     = errors.New("event IP is required")
-	ErrMissingSessionIDOrSourceToken      = errors.New("either session ID or sourceToken is required")
+	ErrMissingCheckpointName         = errors.New("checkpoint name is required")
+	ErrMissingEventIP                = errors.New("event IP is required")
+	ErrMissingSessionIDOrSourceToken = errors.New("either session ID or sourceToken is required")
 )
 
 // Config is the configuration for the Dodgeball client
@@ -152,7 +152,7 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 	verificationID := checkpointResponse.Verification.ID
 	var verificationResponse CheckpointResponse
 
-	for trivialTimeout || request.Options.Timeout > numRepeats*activeTimeout && !isResolved && numFailures < MaxRetryCount {
+	for (trivialTimeout || request.Options.Timeout > numRepeats*activeTimeout) && !isResolved && (numFailures < MaxRetryCount) {
 		time.Sleep(time.Millisecond * time.Duration(activeTimeout))
 		if activeTimeout < maximalTimeout {
 			activeTimeout = 2 * activeTimeout
