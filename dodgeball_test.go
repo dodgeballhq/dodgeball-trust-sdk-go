@@ -55,7 +55,7 @@ func TestDodgeball_Checkpoint(t *testing.T) {
 					},
 					"deduce": map[string]interface{}{"isTest": true}},
 			},
-			Options:           CheckpointResponseOptions{},
+			Options:           CheckpointResponseOptions{Timeout: 1000},
 			SessionID:         "64de1794-8bb9-11ed-a1eb-0242ac120004",
 			UserID:            "64de1794-8bb9-11ed-a1eb-0242ac120002",
 			UseVerificationID: "",

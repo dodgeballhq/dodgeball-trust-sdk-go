@@ -150,12 +150,10 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 
 	isResolved := verificationResponse.Verification.Status != VerificationStatusPending
 	verificationID := verificationResponse.Verification.ID
+	elapsedTime := activeTimeout
 
-	for (trivialTimeout || request.Options.Timeout > numRepeats*activeTimeout) && !isResolved && (numFailures < MaxRetryCount) {
+	for (trivialTimeout || request.Options.Timeout > elapsedTime) && !isResolved && (numFailures < MaxRetryCount) {
 		time.Sleep(time.Millisecond * time.Duration(activeTimeout))
-		if activeTimeout < maximalTimeout {
-			activeTimeout = 2 * activeTimeout
-		}
 
 		resp, err := d.verification(&request, verificationID)
 		if err != nil {
@@ -178,6 +176,11 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 			isResolved = true
 		default:
 			numRepeats++
+		}
+
+		elapsedTime += activeTimeout
+		if activeTimeout < maximalTimeout {
+			activeTimeout = 2 * activeTimeout
 		}
 	}
 
