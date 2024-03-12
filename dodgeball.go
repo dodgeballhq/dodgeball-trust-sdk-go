@@ -20,8 +20,8 @@ const (
 	// BaseCheckpointTimeout is the default timeout for a checkpoint
 	BaseCheckpointTimeout = 100
 
-	// MaxTimeout is the maximum timeout for a checkpoint
-	MaxTimeout = 10000
+	// Maximal Sleep in between polling invocations
+	MaxPollingSleep = 1000
 
 	// MaxRetryCount is the maximum number of retries for a checkpoint
 	MaxRetryCount = 3
@@ -119,8 +119,6 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 		activeTimeout = request.Options.Timeout
 	}
 
-	maximalTimeout := MaxTimeout
-
 	internalOpts := &CheckpointResponseOptions{
 		Sync:    false, // TODO: make configurable
 		Timeout: activeTimeout,
@@ -151,9 +149,10 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 	isResolved := verificationResponse.Verification.Status != VerificationStatusPending
 	verificationID := verificationResponse.Verification.ID
 	elapsedTime := activeTimeout
+	pollingSleep := 100
 
 	for (trivialTimeout || request.Options.Timeout > elapsedTime) && !isResolved && (numFailures < MaxRetryCount) {
-		time.Sleep(time.Millisecond * time.Duration(activeTimeout))
+		time.Sleep(time.Millisecond * time.Duration(pollingSleep))
 
 		resp, err := d.verification(&request, verificationID)
 		if err != nil {
@@ -178,9 +177,11 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 			numRepeats++
 		}
 
-		elapsedTime += activeTimeout
-		if activeTimeout < maximalTimeout {
-			activeTimeout = 2 * activeTimeout
+		elapsedTime += pollingSleep
+		if pollingSleep < MaxPollingSleep {
+			if (2 * pollingSleep) <= MaxPollingSleep {
+				pollingSleep = 2 * pollingSleep
+			}
 		}
 	}
 
