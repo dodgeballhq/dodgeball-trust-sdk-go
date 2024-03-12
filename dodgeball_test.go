@@ -3,7 +3,7 @@ package dodgeball
 import "testing"
 
 // Set the secret key appropriately when executing tests
-const DODGEBALL_SECRET_KEY = "1c29d5d6593011ec9412470128c0fd71"
+const DODGEBALL_SECRET_KEY = ""
 
 func TestDodgeball_Checkpoint(t *testing.T) {
 	type fields struct {
