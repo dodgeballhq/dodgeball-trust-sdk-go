@@ -127,16 +127,16 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 		Webhook: request.Options.Webhook,
 	}
 
-	var checkpointResponse CheckpointResponse
+	var verificationResponse CheckpointResponse
 	numRepeats := 0
 	numFailures := 0
 
-	for !checkpointResponse.Success && numRepeats < MaxRetryCount {
+	for !verificationResponse.Success && numRepeats < MaxRetryCount {
 		resp, err := d.verify(&request, internalOpts)
 		if err != nil {
 			return nil, err
 		}
-		err = json.Unmarshal(resp, &checkpointResponse)
+		err = json.Unmarshal(resp, &verificationResponse)
 		if err != nil {
 			return nil, fmt.Errorf("error unmarshalling verify response %s", err.Error())
 		}
@@ -144,13 +144,12 @@ func (d *Dodgeball) Checkpoint(request CheckpointRequest) (*CheckpointResponse, 
 		numRepeats++
 	}
 
-	if !checkpointResponse.Success {
+	if !verificationResponse.Success {
 		return nil, fmt.Errorf("verify failed after %d attempts", numRepeats)
 	}
 
-	isResolved := checkpointResponse.Verification.Status != VerificationStatusPending
-	verificationID := checkpointResponse.Verification.ID
-	var verificationResponse CheckpointResponse
+	isResolved := verificationResponse.Verification.Status != VerificationStatusPending
+	verificationID := verificationResponse.Verification.ID
 
 	for (trivialTimeout || request.Options.Timeout > numRepeats*activeTimeout) && !isResolved && (numFailures < MaxRetryCount) {
 		time.Sleep(time.Millisecond * time.Duration(activeTimeout))
