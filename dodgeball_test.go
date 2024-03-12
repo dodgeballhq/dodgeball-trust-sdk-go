@@ -2,7 +2,8 @@ package dodgeball
 
 import "testing"
 
-const DODGEBALL_SECRET_KEY = "1c29d5d6593011ec9412470128c0fd71"
+// Set the secret key appropriately when executing tests
+const DODGEBALL_SECRET_KEY = ""
 
 func TestDodgeball_Checkpoint(t *testing.T) {
 	type fields struct {
@@ -13,12 +14,12 @@ func TestDodgeball_Checkpoint(t *testing.T) {
 		request CheckpointRequest
 	}
 	config := Config{
-		APIURL:     "http://localhost:3001/",
+		APIURL:     "https://api.dodgeballhq.com/",
 		APIVersion: "v1",
 		IsEnabled:  true,
 	}
 	configDisabled := Config{
-		APIURL:     "http://localhost:3001/",
+		APIURL:     "https:/api.dodgeballhq.com/",
 		APIVersion: "v1",
 		IsEnabled:  false,
 	}
@@ -32,12 +33,26 @@ func TestDodgeball_Checkpoint(t *testing.T) {
 		{"checkpoint test1", fields{DODGEBALL_SECRET_KEY, &config}, args{CheckpointRequest{
 			CheckpointName: "TEST_CHECKPOINT",
 			Event: CheckpointEvent{
-				IP:   "123.123.123.123",
-				Data: map[string]interface{}{},
+				IP: "123.123.123.123",
+				Data: map[string]interface{}{
+					"customer": map[string]interface{}{
+						"firstName":    "John",
+						"middleName":   "A",
+						"lastName":     "Smith",
+						"primaryEmail": "john.a.smith@example.com",
+						"primaryPhone": "+1 2049381968",
+						"dateOfBirth":  "2003-02-14",
+						"taxId":        "111111100",
+						"createdAt":    "2010-01-01",
+					},
+					"transaction": map[string]interface{}{
+						"externalId": "badExternalId",
+						"currency":   "USD",
+						"amount":     1000,
+					},
+					"deduce": map[string]interface{}{"isTest": true}},
 			},
-			Options: CheckpointResponseOptions{
-				Timeout: 1000,
-			},
+			Options:           CheckpointResponseOptions{},
 			SessionID:         "64de1794-8bb9-11ed-a1eb-0242ac120004",
 			UserID:            "64de1794-8bb9-11ed-a1eb-0242ac120002",
 			UseVerificationID: "",
@@ -58,7 +73,7 @@ func TestDodgeball_Checkpoint(t *testing.T) {
 				IP:   "123.123.123.123",
 				Data: map[string]interface{}{},
 			},
-			SourceToken: 		 "64de1794-8bb9-11ed-a1eb-0242ac120004",
+			SourceToken:       "64de1794-8bb9-11ed-a1eb-0242ac120004",
 			UserID:            "64de1794-8bb9-11ed-a1eb-0242ac120002",
 			UseVerificationID: "",
 		}}, false},
@@ -85,7 +100,7 @@ func TestDodgeball_Event(t *testing.T) {
 		request TrackOptions
 	}
 	config := Config{
-		APIURL:     "http://localhost:3001/",
+		APIURL:     "https://api.dodgeballhq.com/",
 		APIVersion: "v1",
 		IsEnabled:  true,
 	}
