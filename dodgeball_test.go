@@ -35,6 +35,9 @@ func TestDodgeball_Checkpoint(t *testing.T) {
 			Event: CheckpointEvent{
 				IP: "123.123.123.123",
 				Data: map[string]interface{}{
+					"mfa": map[string]interface{}{
+						"phoneNumbers": "+16175551212",
+					},
 					"customer": map[string]interface{}{
 						"firstName":    "John",
 						"middleName":   "A",
